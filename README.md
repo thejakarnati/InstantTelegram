@@ -1,6 +1,6 @@
 # InstantTelegram (Android)
 
-Minimal Android app with package name `com.thejakarnati.instanttelegram` that:
+Minimal Android app that:
 
 - fetches **public** Instagram profile data (no account login)
 - previews recent public posts/videos for a creator
@@ -22,3 +22,6 @@ If Gradle wrapper is missing, generate it with a local Gradle install:
 ```bash
 gradle wrapper
 ```
+
+
+Use JDK 17 for Android Gradle Plugin compatibility (for example: `export JAVA_HOME=/path/to/jdk17`).
