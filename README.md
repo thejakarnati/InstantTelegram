@@ -17,7 +17,7 @@ Instagram changes/limits unauthenticated endpoints frequently. This project only
 ./gradlew assembleDebug
 ```
 
-If Gradle wrapper files are not present, generate them with a local Gradle install:
+If Gradle wrapper is missing, generate it with a local Gradle install:
 
 ```bash
 gradle wrapper
