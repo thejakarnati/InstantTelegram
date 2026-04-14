@@ -1,5 +1,7 @@
 package com.thejakarnati.instanttelegram
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,6 +27,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -138,7 +141,7 @@ class MainViewModel(
             }.onFailure {
                 _uiState.value = _uiState.value.copy(
                     loading = false,
-                    message = "Could not load profile preview. For reliable previews, configure BRIDGE_BASE_URL to your own backend bridge."
+                    message = "Could not load profile preview. Try Open Profile for direct viewing, or configure BRIDGE_BASE_URL for reliable in-app previews."
                 )
             }
         }
@@ -193,6 +196,7 @@ class MainViewModel(
 @Composable
 private fun App(viewModel: MainViewModel) {
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     Scaffold(modifier = Modifier.fillMaxSize()) { padding ->
         LazyColumn(
@@ -222,6 +226,16 @@ private fun App(viewModel: MainViewModel) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = viewModel::search) { Text("Preview") }
                     Button(onClick = viewModel::addFavorite) { Text("Add favorite") }
+                    Button(onClick = {
+                        val username = state.query.trim()
+                        if (username.isNotBlank()) {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://www.instagram.com/$username/")
+                            )
+                            context.startActivity(intent)
+                        }
+                    }) { Text("Open profile") }
                 }
                 if (state.loading) {
                     Spacer(Modifier.height(8.dp))
