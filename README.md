@@ -9,7 +9,7 @@ Minimal Android app that:
 
 ## Notes
 
-Instagram changes/limits unauthenticated endpoints frequently. This project only attempts to load public data and shows an error when endpoints are blocked.
+Instagram changes/limits unauthenticated endpoints frequently. This project tries JSON endpoints first and then falls back to parsing public profile HTML.
 If preview is blocked, you can still add a creator username to favorites locally and the app will retry feed fetches later.
 
 ## Run

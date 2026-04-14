@@ -52,16 +52,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val db = Room.databaseBuilder(applicationContext, AppDatabase::class.java, "instanttelegram.db").build()
+        val httpClient = OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
+            .build()
         val retrofit = Retrofit.Builder()
             .baseUrl("https://www.instagram.com/")
-            .client(
-                OkHttpClient.Builder()
-                    .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
-                    .build()
-            )
+            .client(httpClient)
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
-        val repository = CreatorRepository(retrofit.create(InstagramApi::class.java), db.favoriteProfileDao())
+        val repository = CreatorRepository(
+            api = retrofit.create(InstagramApi::class.java),
+            favoritesDao = db.favoriteProfileDao(),
+            httpClient = httpClient
+        )
 
         val vmFactory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
