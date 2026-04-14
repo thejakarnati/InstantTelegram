@@ -10,6 +10,7 @@ Minimal Android app that:
 ## Notes
 
 Instagram changes/limits unauthenticated endpoints frequently. This project tries JSON endpoints first and then falls back to parsing public profile HTML.
+For best reliability, configure `BRIDGE_BASE_URL` in `app/build.gradle.kts` to a self-hosted backend that returns creator feed JSON (`/api/v1/instagram/{username}`).
 If preview is blocked, you can still add a creator username to favorites locally and the app will retry feed fetches later.
 
 ## Run

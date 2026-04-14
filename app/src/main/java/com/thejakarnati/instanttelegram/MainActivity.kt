@@ -34,6 +34,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import coil.compose.AsyncImage
 import com.thejakarnati.instanttelegram.data.local.AppDatabase
+import com.thejakarnati.instanttelegram.data.remote.BridgeApi
 import com.thejakarnati.instanttelegram.data.remote.InstagramApi
 import com.thejakarnati.instanttelegram.data.repository.CreatorRepository
 import com.thejakarnati.instanttelegram.domain.CreatorProfile
@@ -60,7 +61,16 @@ class MainActivity : ComponentActivity() {
             .client(httpClient)
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
+        val bridgeApi = BuildConfig.BRIDGE_BASE_URL.takeIf { it.isNotBlank() }?.let { baseUrl ->
+            Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .client(httpClient)
+                .addConverterFactory(MoshiConverterFactory.create())
+                .build()
+                .create(BridgeApi::class.java)
+        }
         val repository = CreatorRepository(
+            bridgeApi = bridgeApi,
             api = retrofit.create(InstagramApi::class.java),
             favoritesDao = db.favoriteProfileDao(),
             httpClient = httpClient
@@ -128,7 +138,7 @@ class MainViewModel(
             }.onFailure {
                 _uiState.value = _uiState.value.copy(
                     loading = false,
-                    message = "Could not load profile preview. Instagram blocks many anonymous requests; you can still add this username to favorites."
+                    message = "Could not load profile preview. For reliable previews, configure BRIDGE_BASE_URL to your own backend bridge."
                 )
             }
         }

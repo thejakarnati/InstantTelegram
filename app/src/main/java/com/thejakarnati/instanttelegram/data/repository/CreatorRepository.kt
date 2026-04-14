@@ -2,6 +2,7 @@ package com.thejakarnati.instanttelegram.data.repository
 
 import com.thejakarnati.instanttelegram.data.local.FavoriteProfileDao
 import com.thejakarnati.instanttelegram.data.local.FavoriteProfileEntity
+import com.thejakarnati.instanttelegram.data.remote.BridgeApi
 import com.thejakarnati.instanttelegram.data.remote.InstagramApi
 import com.thejakarnati.instanttelegram.domain.CreatorProfile
 import com.thejakarnati.instanttelegram.domain.FeedItem
@@ -12,6 +13,7 @@ import okhttp3.Request
 import org.jsoup.Jsoup
 
 class CreatorRepository(
+    private val bridgeApi: BridgeApi?,
     private val api: InstagramApi,
     private val favoritesDao: FavoriteProfileDao,
     private val httpClient: OkHttpClient
@@ -31,6 +33,9 @@ class CreatorRepository(
 
     suspend fun searchProfile(username: String): Result<Pair<CreatorProfile, List<FeedItem>>> = runCatching {
         val normalized = username.trim()
+        bridgeApi?.let { bridge ->
+            runCatching { fetchFromBridge(bridge, normalized) }.getOrNull()?.let { return@runCatching it }
+        }
         runCatching {
             val user = api.getProfilePageData(normalized).graphql?.user
                 ?: api.getWebProfileInfo(normalized).data?.user
@@ -142,5 +147,31 @@ class CreatorRepository(
         )
 
         return profile to posts
+    }
+
+    private suspend fun fetchFromBridge(bridge: BridgeApi, username: String): Pair<CreatorProfile, List<FeedItem>> {
+        val response = bridge.getCreatorFeed(username)
+        val profile = response.profile ?: error("Bridge profile missing.")
+        val mappedProfile = CreatorProfile(
+            username = profile.username ?: username,
+            fullName = profile.fullName.orEmpty(),
+            biography = profile.biography.orEmpty(),
+            profilePicUrl = profile.profilePicUrl.orEmpty(),
+            isFavorite = false
+        )
+        val mappedItems = response.items.orEmpty().mapNotNull { item ->
+            val id = item.id ?: return@mapNotNull null
+            val permalink = item.permalink ?: return@mapNotNull null
+            FeedItem(
+                id = id,
+                username = item.username ?: mappedProfile.username,
+                caption = item.caption.orEmpty(),
+                mediaUrl = item.mediaUrl.orEmpty(),
+                thumbnailUrl = item.thumbnailUrl.orEmpty(),
+                isVideo = item.isVideo == true,
+                permalink = permalink
+            )
+        }
+        return mappedProfile to mappedItems
     }
 }
