@@ -10,6 +10,7 @@ Minimal Android app that:
 ## Notes
 
 Instagram changes/limits unauthenticated endpoints frequently. This project only attempts to load public data and shows an error when endpoints are blocked.
+If preview is blocked, you can still add a creator username to favorites locally and the app will retry feed fetches later.
 
 ## Run
 
@@ -17,7 +18,7 @@ Instagram changes/limits unauthenticated endpoints frequently. This project only
 ./gradlew assembleDebug
 ```
 
-If Gradle wrapper is missing, generate it with a local Gradle install:
+If Gradle wrapper files are not present, generate them with a local Gradle install:
 
 ```bash
 gradle wrapper

@@ -26,8 +26,10 @@ class CreatorRepository(
         }
 
     suspend fun searchProfile(username: String): Result<Pair<CreatorProfile, List<FeedItem>>> = runCatching {
-        val response = api.getProfilePageData(username.trim())
-        val user = requireNotNull(response.graphql?.user) { "Profile unavailable." }
+        val normalized = username.trim()
+        val user = api.getProfilePageData(normalized).graphql?.user
+            ?: api.getWebProfileInfo(normalized).data?.user
+            ?: error("Profile unavailable.")
         val media = user.media?.edges.orEmpty().mapNotNull { edge ->
             val node = edge.node ?: return@mapNotNull null
             val postId = node.id ?: return@mapNotNull null
@@ -52,6 +54,18 @@ class CreatorRepository(
         )
 
         profile to media
+    }
+
+    suspend fun addFavoriteByUsername(username: String) {
+        val normalized = username.trim()
+        if (normalized.isBlank()) return
+        favoritesDao.upsert(
+            FavoriteProfileEntity(
+                username = normalized,
+                displayName = normalized,
+                profilePicUrl = ""
+            )
+        )
     }
 
     suspend fun addFavorite(profile: CreatorProfile) {

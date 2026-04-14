@@ -6,6 +6,14 @@ data class InstagramPageResponse(
     @Json(name = "graphql") val graphql: GraphqlDto?
 )
 
+data class InstagramWebProfileResponse(
+    @Json(name = "data") val data: WebProfileDataDto?
+)
+
+data class WebProfileDataDto(
+    @Json(name = "user") val user: UserDto?
+)
+
 data class GraphqlDto(
     @Json(name = "user") val user: UserDto?
 )

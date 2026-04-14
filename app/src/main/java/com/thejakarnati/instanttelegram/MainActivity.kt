@@ -23,12 +23,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -129,14 +125,28 @@ class MainViewModel(
             }.onFailure {
                 _uiState.value = _uiState.value.copy(
                     loading = false,
-                    message = "Could not load profile. Instagram can block unauthenticated endpoints."
+                    message = "Could not load profile preview. Instagram blocks many anonymous requests; you can still add this username to favorites."
                 )
             }
         }
     }
 
     fun addFavorite() {
-        val profile = _uiState.value.selectedProfile ?: return
+        val profile = _uiState.value.selectedProfile
+        if (profile == null) {
+            val username = _uiState.value.query.trim()
+            if (username.isBlank()) {
+                _uiState.value = _uiState.value.copy(message = "Type a username first.")
+                return
+            }
+            viewModelScope.launch {
+                repository.addFavoriteByUsername(username)
+                _uiState.value = _uiState.value.copy(
+                    message = "Added @$username to favorites without preview. Search again later to refresh public posts."
+                )
+            }
+            return
+        }
         viewModelScope.launch {
             repository.addFavorite(profile)
             _uiState.value = _uiState.value.copy(message = "Added @${profile.username} to favorites.")
